@@ -1,75 +1,3 @@
-def get_cites_dia(date_str):
-    try:
-        creds = Credentials.from_authorized_user_file('token.json')
-        service = build('calendar', 'v3', credentials=creds)
-
-        dia_obj = datetime.strptime(date_str, '%Y-%m-%d')
-        start = dia_obj.replace(hour=0, minute=0, second=0).isoformat() + 'Z'
-        end = (dia_obj + timedelta(days=1)).replace(hour=0, minute=0, second=0).isoformat() + 'Z'
-
-        dia_en = dia_obj.strftime('%A').capitalize()
-        dia_setmana_cat = DIES_CAT.get(dia_en, dia_en)
-        mes_cat = MESOS_CAT[dia_obj.month]
-        dia_fmt = f"{dia_setmana_cat} {dia_obj.day} de {mes_cat} de {dia_obj.year}"
-
-        events_result = service.events().list(
-            calendarId='primary',
-            timeMin=start,
-            timeMax=end,
-            singleEvents=True,
-            orderBy='startTime',
-            fields='items(start,summary,description,location)'
-        ).execute()
-
-        events = events_result.get('items', [])
-        cites = []
-
-        for event in events:
-            start_raw = event['start'].get('dateTime') or event['start'].get('date')
-            hora = start_raw[11:16] if 'T' in start_raw else 'Sense hora'
-
-            text = ' '.join([
-                event.get('summary', ''),
-                event.get('description', ''),
-                event.get('location', '')
-            ])
-
-            match = re.search(r'(\+?\d[\d\s\-().]{8,})', text)
-            if match:
-                tel_raw = match.group(1)
-                tel = re.sub(r'\D', '', tel_raw)
-                if tel.startswith('34'):
-                    tel = '+' + tel
-                elif tel.startswith('6') or tel.startswith('7'):
-                    tel = '+34' + tel
-                else:
-                    tel = '+' + tel
-                nom_complet = event.get('summary', '').replace(match.group(1), '').strip()
-            else:
-                tel = ''
-                nom_complet = event.get('summary', '').strip()
-
-            nom_net = re.sub(r'[^\w\sÀ-ÿ]', '', nom_complet)
-            nom_pila = nom_net.split()[0] if nom_net else 'client'
-
-            missatges = {}
-            for clau, plantilla in PLANTILLES.items():
-                text = plantilla.replace("{{nom}}", nom_pila).replace("{{dia}}", dia_fmt).replace("{{hora}}", hora)
-                missatges[clau] = text
-
-            cites.append({
-                "hora": hora,
-                "nom": nom_complet,
-                "nom_net": nom_net,
-                "nom_pila": nom_pila,
-                "tel": tel,
-                "missatges": missatges
-            })
-
-        return cites
-    except Exception as e:
-        print("Error accedint a Google Calendar:", e)
-        return []
 from flask import Flask, render_template, request
 from datetime import datetime, timedelta
 import os
@@ -81,7 +9,6 @@ from googleapiclient.discovery import build
 
 app = Flask(__name__)
 
-# ✅ Diccionaris en català
 DIES_CAT = {
     'Monday': 'Dilluns', 'Tuesday': 'Dimarts', 'Wednesday': 'Dimecres',
     'Thursday': 'Dijous', 'Friday': 'Divendres', 'Saturday': 'Dissabte', 'Sunday': 'Diumenge'
@@ -93,10 +20,8 @@ MESOS_CAT = {
     9: 'Setembre', 10: 'Octubre', 11: 'Novembre', 12: 'Desembre'
 }
 
-# ✅ Configuració regional segura per Vercel
 os.environ["LC_TIME"] = "C"
 
-# ✅ Plantilles WhatsApp
 PLANTILLES = {
     "confirmacio": """✅Hola {{nom}}, has reservat correctament el {{dia}} a les {{hora}}.
 
@@ -135,7 +60,6 @@ Si vols reprogramar-la, escriu-nos i busquem una nova data.
 Disculpa les molèsties i gràcies per la teva comprensió."""
 }
 
-# ✅ Obtenir cites des de Google Calendar
 def get_cites_dia(date_str):
     try:
         creds = Credentials.from_authorized_user_file('token.json')
@@ -160,7 +84,6 @@ def get_cites_dia(date_str):
         ).execute()
 
         events = events_result.get('items', [])
-        print(f"[DEBUG] {len(events)} cites trobades per al dia {date_str}")
         cites = []
 
         for event in events:
@@ -210,12 +133,10 @@ def get_cites_dia(date_str):
         print("Error accedint a Google Calendar:", e)
         return []
 
-# ✅ Ruta principal
 @app.route('/')
 def index():
     return dia()
 
-# ✅ Vista per dia
 @app.route('/dia')
 def dia():
     date_str = request.args.get('date')
@@ -242,7 +163,6 @@ def dia():
         cites=cites
     )
 
-# ✅ Vista calendari
 @app.route('/calendari')
 def calendari():
     mes_str = request.args.get('mes')
@@ -288,7 +208,6 @@ def generar_dies_del_mes(data):
         })
     return dies
 
-# ✅ Exposa l'app per Vercel
 app = app
 
 if __name__ == '__main__':

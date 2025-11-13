@@ -8,10 +8,7 @@
   <link rel="apple-touch-icon" href="/static/icon192.png" />
   <link rel="icon" href="/static/icon192.png" />
   <style>
-    :root {
-      color-scheme: light dark;
-    }
-
+    :root { color-scheme: light dark; }
     body {
       font-family: sans-serif;
       margin: 0;
@@ -20,13 +17,11 @@
       color: CanvasText;
       text-align: center;
     }
-
     .titol {
       font-size: 1.6rem;
       font-weight: bold;
       padding: 1rem 0 0.5rem 0;
     }
-
     .navegacio {
       display: flex;
       justify-content: center;
@@ -35,11 +30,7 @@
       font-size: 2rem;
       margin-bottom: 1rem;
     }
-
-    .navegacio a {
-      text-decoration: none;
-    }
-
+    .navegacio a { text-decoration: none; }
     .cita {
       margin: 1rem auto;
       padding: 1rem;
@@ -49,7 +40,6 @@
       max-width: 320px;
       text-align: center;
     }
-
     .hora {
       font-size: 1.8rem;
       font-weight: bold;
@@ -60,23 +50,17 @@
       display: inline-block;
       margin-bottom: 0.5rem;
     }
-
     .nom {
       font-size: 1.2rem;
       font-weight: bold;
       margin-bottom: 0.3rem;
     }
-
     .tel {
       font-size: 1rem;
       color: GrayText;
       margin-bottom: 0.5rem;
     }
-
-    .tel::before {
-      content: "📞 ";
-    }
-
+    .tel::before { content: "📞 "; }
     .botons {
       display: flex;
       justify-content: center;
@@ -84,33 +68,26 @@
       font-size: 2rem;
       margin-top: 0.5rem;
     }
-
     .botons a {
       text-decoration: none;
       padding: 0.3rem;
       border-radius: 0.3rem;
       transition: background-color 0.2s;
     }
-
     .botons a:hover {
       background-color: Highlight;
       color: HighlightText;
     }
-
     footer {
       text-align: center;
       padding: 2rem 0;
       font-size: 2rem;
     }
-
-    footer a {
-      text-decoration: none;
-    }
+    footer a { text-decoration: none; }
   </style>
 </head>
 <body>
   <div class="titol">{{ dia_fmt }}</div>
-
   <div class="navegacio">
     <a href="/dia?date={{ dia_anterior }}">←</a>
     <a href="/calendari">📅</a>
