@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
 from datetime import datetime, timedelta
-import locale
+import os
 import re
 import calendar
 
@@ -21,11 +21,8 @@ MESOS_CAT = {
     9: 'Setembre', 10: 'Octubre', 11: 'Novembre', 12: 'Desembre'
 }
 
-# ✅ Configuració regional segura
-try:
-    locale.setlocale(locale.LC_TIME, 'ca_ES.UTF-8')
-except locale.Error:
-    locale.setlocale(locale.LC_TIME, '')
+# ✅ Configuració regional segura per Vercel
+os.environ["LC_TIME"] = "C"
 
 # ✅ Missatges WhatsApp
 PLANTILLES = {
@@ -68,71 +65,75 @@ Disculpa les molèsties i gràcies per la teva comprensió."""
 
 # ✅ Obtenir cites des de Google Calendar
 def get_cites_dia(date_str):
-    creds = Credentials.from_authorized_user_file('token.json')
-    service = build('calendar', 'v3', credentials=creds)
+    try:
+        creds = Credentials.from_authorized_user_file('token.json')
+        service = build('calendar', 'v3', credentials=creds)
 
-    dia_obj = datetime.strptime(date_str, '%Y-%m-%d')
-    start = dia_obj.replace(hour=0, minute=0, second=0).isoformat() + 'Z'
-    end = (dia_obj + timedelta(days=1)).replace(hour=0, minute=0, second=0).isoformat() + 'Z'
+        dia_obj = datetime.strptime(date_str, '%Y-%m-%d')
+        start = dia_obj.replace(hour=0, minute=0, second=0).isoformat() + 'Z'
+        end = (dia_obj + timedelta(days=1)).replace(hour=0, minute=0, second=0).isoformat() + 'Z'
 
-    dia_en = dia_obj.strftime('%A').capitalize()
-    dia_setmana_cat = DIES_CAT.get(dia_en, dia_en)
-    mes_cat = MESOS_CAT[dia_obj.month]
-    dia_fmt = f"{dia_setmana_cat} {dia_obj.day} de {mes_cat}"
+        dia_en = dia_obj.strftime('%A').capitalize()
+        dia_setmana_cat = DIES_CAT.get(dia_en, dia_en)
+        mes_cat = MESOS_CAT[dia_obj.month]
+        dia_fmt = f"{dia_setmana_cat} {dia_obj.day} de {mes_cat} de {dia_obj.year}"
 
-    events_result = service.events().list(
-        calendarId='primary',
-        timeMin=start,
-        timeMax=end,
-        singleEvents=True,
-        orderBy='startTime',
-        fields='items(start,summary,description,location)'
-    ).execute()
+        events_result = service.events().list(
+            calendarId='primary',
+            timeMin=start,
+            timeMax=end,
+            singleEvents=True,
+            orderBy='startTime',
+            fields='items(start,summary,description,location)'
+        ).execute()
 
-    events = events_result.get('items', [])
-    cites = []
+        events = events_result.get('items', [])
+        cites = []
 
-    for event in events:
-        hora = event['start'].get('dateTime', event['start'].get('date'))[11:16]
-        text = ' '.join([
-            event.get('summary', ''),
-            event.get('description', ''),
-            event.get('location', '')
-        ])
+        for event in events:
+            hora = event['start'].get('dateTime', event['start'].get('date'))[11:16]
+            text = ' '.join([
+                event.get('summary', ''),
+                event.get('description', ''),
+                event.get('location', '')
+            ])
 
-        match = re.search(r'(\+?\d[\d\s\-().]{8,})', text)
-        if match:
-            tel_raw = match.group(1)
-            tel = re.sub(r'\D', '', tel_raw)
-            if tel.startswith('34'):
-                tel = '+' + tel
-            elif tel.startswith('6') or tel.startswith('7'):
-                tel = '+34' + tel
+            match = re.search(r'(\+?\d[\d\s\-().]{8,})', text)
+            if match:
+                tel_raw = match.group(1)
+                tel = re.sub(r'\D', '', tel_raw)
+                if tel.startswith('34'):
+                    tel = '+' + tel
+                elif tel.startswith('6') or tel.startswith('7'):
+                    tel = '+34' + tel
+                else:
+                    tel = '+' + tel
+                nom_complet = event.get('summary', '').replace(match.group(1), '').strip()
             else:
-                tel = '+' + tel
-            nom_complet = event.get('summary', '').replace(match.group(1), '').strip()
-        else:
-            tel = ''
-            nom_complet = event.get('summary', '').strip()
+                tel = ''
+                nom_complet = event.get('summary', '').strip()
 
-        nom_net = re.sub(r'[^\w\sÀ-ÿ]', '', nom_complet)
-        nom_pila = nom_net.split()[0] if nom_net else 'client'
+            nom_net = re.sub(r'[^\w\sÀ-ÿ]', '', nom_complet)
+            nom_pila = nom_net.split()[0] if nom_net else 'client'
 
-        missatges = {}
-        for clau, plantilla in PLANTILLES.items():
-            text = plantilla.replace("{{nom}}", nom_pila).replace("{{dia}}", dia_fmt).replace("{{hora}}", hora)
-            missatges[clau] = text
+            missatges = {}
+            for clau, plantilla in PLANTILLES.items():
+                text = plantilla.replace("{{nom}}", nom_pila).replace("{{dia}}", dia_fmt).replace("{{hora}}", hora)
+                missatges[clau] = text
 
-        cites.append({
-            "hora": hora,
-            "nom": nom_complet,
-            "nom_net": nom_net,
-            "nom_pila": nom_pila,
-            "tel": tel,
-            "missatges": missatges
-        })
+            cites.append({
+                "hora": hora,
+                "nom": nom_complet,
+                "nom_net": nom_net,
+                "nom_pila": nom_pila,
+                "tel": tel,
+                "missatges": missatges
+            })
 
-    return cites
+        return cites
+    except Exception as e:
+        print("Error accedint a Google Calendar:", e)
+        return []
 
 @app.route('/')
 def index():
@@ -149,7 +150,7 @@ def dia():
     dia_en = dia_obj.strftime('%A').capitalize()
     dia_setmana_cat = DIES_CAT.get(dia_en, dia_en)
     mes_cat = MESOS_CAT[dia_obj.month]
-    dia_fmt = f"{dia_setmana_cat} {dia_obj.day} de {mes_cat}"
+    dia_fmt = f"{dia_setmana_cat} {dia_obj.day} de {mes_cat} de {dia_obj.year}"
 
     dia_anterior = (dia_obj - timedelta(days=1)).strftime('%Y-%m-%d')
     dia_seguent = (dia_obj + timedelta(days=1)).strftime('%Y-%m-%d')
@@ -207,6 +208,9 @@ def generar_dies_del_mes(data):
             'avui': dia.date() == datetime.today().date()
         })
     return dies
+
+# ✅ Exposa l'aplicació per a Vercel
+app = app
 
 if __name__ == '__main__':
     app.run(debug=True)
