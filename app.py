@@ -207,5 +207,4 @@ def get_cites_dia(date_str):
 
 app = app
 
-if __name__ == '__main__':
-    app.run(debug=True)
+
