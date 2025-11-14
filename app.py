@@ -18,6 +18,36 @@ def test():
         "refresh_token_present": bool(os.getenv("GOOGLE_REFRESH_TOKEN")),
     }
 
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/dia')
+def dia():
+    date_str = request.args.get('date')
+    if date_str == 'avui' or not date_str:
+        dia_obj = datetime.today()
+    else:
+        dia_obj = datetime.strptime(date_str, '%Y-%m-%d')
+
+    dia_en = dia_obj.strftime('%A').capitalize()
+    dia_setmana_cat = DIES_CAT.get(dia_en, dia_en)
+    mes_cat = MESOS_CAT[dia_obj.month]
+    dia_fmt = f"{dia_setmana_cat} {dia_obj.day} de {mes_cat} de {dia_obj.year}"
+
+    dia_anterior = (dia_obj - timedelta(days=1)).strftime('%Y-%m-%d')
+    dia_seguent = (dia_obj + timedelta(days=1)).strftime('%Y-%m-%d')
+
+    cites = get_cites_dia(dia_obj.strftime('%Y-%m-%d'))
+
+    return render_template('dia.html',
+        dia_fmt=dia_fmt,
+        raw_date=dia_obj.strftime('%Y-%m-%d'),
+        dia_anterior=dia_anterior,
+        dia_seguent=dia_seguent,
+        cites=cites
+    )
+
 DIES_CAT = {
     'Monday': 'Dilluns', 'Tuesday': 'Dimarts', 'Wednesday': 'Dimecres',
     'Thursday': 'Dijous', 'Friday': 'Divendres', 'Saturday': 'Dissabte', 'Sunday': 'Diumenge'
@@ -174,36 +204,6 @@ def get_cites_dia(date_str):
     except Exception as e:
         print("Error accedint a Google Calendar:", e)
         return []
-
-@app.route('/')
-def index():
-    return dia()
-
-@app.route('/dia')
-def dia():
-    date_str = request.args.get('date')
-    if date_str == 'avui' or not date_str:
-        dia_obj = datetime.today()
-    else:
-        dia_obj = datetime.strptime(date_str, '%Y-%m-%d')
-
-    dia_en = dia_obj.strftime('%A').capitalize()
-    dia_setmana_cat = DIES_CAT.get(dia_en, dia_en)
-    mes_cat = MESOS_CAT[dia_obj.month]
-    dia_fmt = f"{dia_setmana_cat} {dia_obj.day} de {mes_cat} de {dia_obj.year}"
-
-    dia_anterior = (dia_obj - timedelta(days=1)).strftime('%Y-%m-%d')
-    dia_seguent = (dia_obj + timedelta(days=1)).strftime('%Y-%m-%d')
-
-    cites = get_cites_dia(dia_obj.strftime('%Y-%m-%d'))
-
-    return render_template('dia.html',
-        dia_fmt=dia_fmt,
-        raw_date=dia_obj.strftime('%Y-%m-%d'),
-        dia_anterior=dia_anterior,
-        dia_seguent=dia_seguent,
-        cites=cites
-    )
 
 app = app
 
