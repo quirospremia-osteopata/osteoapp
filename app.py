@@ -204,4 +204,3 @@ def get_cites_dia(date_str):
     except Exception as e:
         print("Error accedint a Google Calendar:", e)
         return []
-
