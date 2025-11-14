@@ -205,6 +205,3 @@ def get_cites_dia(date_str):
         print("Error accedint a Google Calendar:", e)
         return []
 
-app = app
-
-
