@@ -1,4 +1,10 @@
-from flask import Flask, render_template, request
+@app.route('/test')
+def test():
+    return {
+        "client_id": os.getenv("GOOGLE_CLIENT_ID")[:10] + "...",
+        "calendar_id": os.getenv("GOOGLE_CALENDAR_ID"),
+        "refresh_token_present": bool(os.getenv("GOOGLE_REFRESH_TOKEN")),
+    }from flask import Flask, render_template, request
 from datetime import datetime, timedelta
 import os
 import re
@@ -202,3 +208,4 @@ app = app
 
 if __name__ == '__main__':
     app.run(debug=True)
+
