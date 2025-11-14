@@ -1,10 +1,4 @@
-@app.route('/test')
-def test():
-    return {
-        "client_id": os.getenv("GOOGLE_CLIENT_ID")[:10] + "...",
-        "calendar_id": os.getenv("GOOGLE_CALENDAR_ID"),
-        "refresh_token_present": bool(os.getenv("GOOGLE_REFRESH_TOKEN")),
-    }from flask import Flask, render_template, request
+from flask import Flask, render_template, request
 from datetime import datetime, timedelta
 import os
 import re
@@ -15,6 +9,14 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 app = Flask(__name__)
+
+@app.route('/test')
+def test():
+    return {
+        "client_id": os.getenv("GOOGLE_CLIENT_ID")[:10] + "...",
+        "calendar_id": os.getenv("GOOGLE_CALENDAR_ID"),
+        "refresh_token_present": bool(os.getenv("GOOGLE_REFRESH_TOKEN")),
+    }
 
 DIES_CAT = {
     'Monday': 'Dilluns', 'Tuesday': 'Dimarts', 'Wednesday': 'Dimecres',
@@ -103,7 +105,6 @@ def get_cites_dia(date_str):
             return []
 
         service = build('calendar', 'v3', credentials=creds)
-
         calendar_id = os.getenv("GOOGLE_CALENDAR_ID", "primary")
 
         dia_obj = datetime.strptime(date_str, '%Y-%m-%d')
@@ -208,4 +209,3 @@ app = app
 
 if __name__ == '__main__':
     app.run(debug=True)
-
