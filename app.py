@@ -75,7 +75,7 @@ def get_cites_dia(date_str):
         dia_fmt = f"{dia_setmana_cat} {dia_obj.day} de {mes_cat} de {dia_obj.year}"
 
         events_result = service.events().list(
-            calendarId='primary',
+         calendarId='quirospremia@gmail.com',
             timeMin=start,
             timeMax=end,
             singleEvents=True,
