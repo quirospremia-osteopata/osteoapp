@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import os
 import re
 import calendar
+import requests
 
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -60,10 +61,44 @@ Si vols reprogramar-la, escriu-nos i busquem una nova data.
 Disculpa les molèsties i gràcies per la teva comprensió."""
 }
 
+def get_google_credentials():
+    client_id = os.getenv("GOOGLE_CLIENT_ID")
+    client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
+    refresh_token = os.getenv("GOOGLE_REFRESH_TOKEN")
+    token_uri = "https://oauth2.googleapis.com/token"
+
+    data = {
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "refresh_token": refresh_token,
+        "grant_type": "refresh_token"
+    }
+
+    response = requests.post(token_uri, data=data)
+    if response.status_code == 200:
+        access_token = response.json()["access_token"]
+        creds = Credentials(
+            token=access_token,
+            refresh_token=refresh_token,
+            token_uri=token_uri,
+            client_id=client_id,
+            client_secret=client_secret,
+            scopes=["https://www.googleapis.com/auth/calendar"]
+        )
+        return creds
+    else:
+        print("❌ Error refrescant token:", response.text)
+        return None
+
 def get_cites_dia(date_str):
     try:
-        creds = Credentials.from_authorized_user_file('token.json')
+        creds = get_google_credentials()
+        if not creds:
+            return []
+
         service = build('calendar', 'v3', credentials=creds)
+
+        calendar_id = os.getenv("GOOGLE_CALENDAR_ID", "primary")
 
         dia_obj = datetime.strptime(date_str, '%Y-%m-%d')
         start = dia_obj.replace(hour=0, minute=0, second=0).isoformat() + 'Z'
@@ -75,7 +110,7 @@ def get_cites_dia(date_str):
         dia_fmt = f"{dia_setmana_cat} {dia_obj.day} de {mes_cat} de {dia_obj.year}"
 
         events_result = service.events().list(
-         calendarId='quirospremia@gmail.com',
+            calendarId=calendar_id,
             timeMin=start,
             timeMax=end,
             singleEvents=True,
@@ -162,51 +197,6 @@ def dia():
         dia_seguent=dia_seguent,
         cites=cites
     )
-
-@app.route('/calendari')
-def calendari():
-    mes_str = request.args.get('mes')
-    if mes_str:
-        any, mes = map(int, mes_str.split('-'))
-        data = datetime(any, mes, 1)
-    else:
-        data = datetime.today()
-
-    mes_actual = f"{MESOS_CAT[data.month]} {data.year}"
-    mes_anterior = (data - timedelta(days=1)).strftime('%Y-%m')
-    mes_seguent = (data + timedelta(days=31)).strftime('%Y-%m')
-    avui = datetime.today().strftime('%Y-%m-%d')
-
-    dies = generar_dies_del_mes(data)
-
-    return render_template('calendari.html',
-        mes_actual=mes_actual,
-        mes_anterior=mes_anterior,
-        mes_seguent=mes_seguent,
-        avui=avui,
-        dies=dies
-    )
-
-def generar_dies_del_mes(data):
-    primer = data.replace(day=1)
-    inici = primer.weekday()
-    if data.month == 12:
-        fi = data.replace(year=data.year + 1, month=1, day=1)
-    else:
-        fi = data.replace(month=data.month + 1, day=1)
-    total = (fi - primer).days
-
-    dies = []
-    for _ in range(inici):
-        dies.append(None)
-    for i in range(1, total + 1):
-        dia = primer.replace(day=i)
-        dies.append({
-            'date': dia.strftime('%Y-%m-%d'),
-            'num': i,
-            'avui': dia.date() == datetime.today().date()
-        })
-    return dies
 
 app = app
 
