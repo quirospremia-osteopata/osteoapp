@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from datetime import datetime, timedelta
 import os
 import re
@@ -12,11 +12,15 @@ app = Flask(__name__)
 
 @app.route('/test')
 def test():
-    return {
-        "client_id": os.getenv("GOOGLE_CLIENT_ID")[:10] + "...",
-        "calendar_id": os.getenv("GOOGLE_CALENDAR_ID"),
-        "refresh_token_present": bool(os.getenv("GOOGLE_REFRESH_TOKEN")),
-    }
+    client_id = os.getenv("GOOGLE_CLIENT_ID")
+    calendar_id = os.getenv("GOOGLE_CALENDAR_ID")
+    refresh_token = os.getenv("GOOGLE_REFRESH_TOKEN")
+
+    return jsonify({
+        "client_id": client_id[:10] + "..." if client_id else None,
+        "calendar_id": calendar_id,
+        "refresh_token_present": bool(refresh_token)
+    })
 
 @app.route('/')
 def index():
@@ -105,6 +109,10 @@ def get_google_credentials():
     refresh_token = os.getenv("GOOGLE_REFRESH_TOKEN")
     token_uri = "https://oauth2.googleapis.com/token"
 
+    if not all([client_id, client_secret, refresh_token]):
+        print("❌ Falten variables d'entorn per a l'autenticació")
+        return None
+
     data = {
         "client_id": client_id,
         "client_secret": client_secret,
@@ -112,8 +120,9 @@ def get_google_credentials():
         "grant_type": "refresh_token"
     }
 
-    response = requests.post(token_uri, data=data)
-    if response.status_code == 200:
+    try:
+        response = requests.post(token_uri, data=data)
+        response.raise_for_status()
         access_token = response.json()["access_token"]
         creds = Credentials(
             token=access_token,
@@ -124,8 +133,8 @@ def get_google_credentials():
             scopes=["https://www.googleapis.com/auth/calendar"]
         )
         return creds
-    else:
-        print("❌ Error refrescant token:", response.text)
+    except Exception as e:
+        print("❌ Error refrescant token:", e)
         return None
 
 def get_cites_dia(date_str):
@@ -202,5 +211,5 @@ def get_cites_dia(date_str):
 
         return cites
     except Exception as e:
-        print("Error accedint a Google Calendar:", e)
+        print("❌ Error accedint a Google Calendar:", e)
         return []
