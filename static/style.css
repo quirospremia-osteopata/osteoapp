@@ -1,6 +1,153 @@
+:root {
+  color-scheme: light dark;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    text-align: center;
-    padding: 50px;
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: Canvas;
+  color: CanvasText;
+  text-align: center;
+}
+
+/* Estils generals */
+h1 {
+  font-size: 2em;
+  margin-bottom: 20px;
+}
+
+p {
+  font-size: 1.2rem;
+  margin-top: 2rem;
+  color: GrayText;
+}
+
+/* Navegació principal */
+.nav, .navegacio {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+  font-size: 2rem;
+  margin: 1rem 0;
+}
+
+.nav-btn, .navegacio a {
+  text-decoration: none;
+  color: Highlight;
+  padding: 0.3rem;
+  border-radius: 0.3rem;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.nav-btn:hover, .navegacio a:hover {
+  transform: scale(1.2);
+  background-color: Highlight;
+  color: HighlightText;
+}
+
+/* Títol del dia */
+.titol {
+  font-size: 1.6rem;
+  font-weight: bold;
+  padding: 1rem 0 0.5rem 0;
+}
+
+/* Bloc de cita */
+.cita {
+  margin: 1rem auto;
+  padding: 1rem;
+  border: 1px solid GrayText;
+  border-radius: 0.5rem;
+  background-color: Canvas;
+  max-width: 320px;
+  text-align: center;
+}
+
+.hora {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: HighlightText;
+  background-color: Highlight;
+  padding: 0.3rem 0.8rem;
+  border-radius: 0.3rem;
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
+.nom {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 0.3rem;
+}
+
+.tel {
+  font-size: 1rem;
+  color: GrayText;
+  margin-bottom: 0.5rem;
+}
+
+.tel::before {
+  content: "📞 ";
+}
+
+/* Botons WhatsApp */
+.botons {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  font-size: 2rem;
+  margin-top: 0.5rem;
+}
+
+.botons a {
+  text-decoration: none;
+  padding: 0.3rem;
+  border-radius: 0.3rem;
+  transition: background-color 0.2s;
+}
+
+.botons a:hover {
+  background-color: Highlight;
+  color: HighlightText;
+}
+
+/* Peu de pàgina */
+footer {
+  text-align: center;
+  padding: 2rem 0;
+  font-size: 2rem;
+}
+
+footer a {
+  text-decoration: none;
+}
+
+/* Mode fosc */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #121212;
+    color: #f0f0f0;
+  }
+
+  .nav-btn, .navegacio a {
+    color: #90caf9;
+  }
+
+  .cita {
+    border-color: #444;
+    background-color: #1e1e1e;
+  }
+
+  .hora {
+    background-color: #90caf9;
+    color: #000;
+  }
+
+  .botons a:hover {
+    background-color: #90caf9;
+    color: #000;
+  }
 }
