@@ -8,19 +8,25 @@ import requests
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
+print("✅ Flask ha arrencat")  # Forcem traça al log
+
 app = Flask(__name__)
 
 @app.route('/test')
 def test():
-    client_id = os.getenv("GOOGLE_CLIENT_ID")
-    calendar_id = os.getenv("GOOGLE_CALENDAR_ID")
-    refresh_token = os.getenv("GOOGLE_REFRESH_TOKEN")
+    try:
+        client_id = os.getenv("GOOGLE_CLIENT_ID")
+        calendar_id = os.getenv("GOOGLE_CALENDAR_ID")
+        refresh_token = os.getenv("GOOGLE_REFRESH_TOKEN")
 
-    return jsonify({
-        "client_id": client_id[:10] + "..." if client_id else None,
-        "calendar_id": calendar_id,
-        "refresh_token_present": bool(refresh_token)
-    })
+        return jsonify({
+            "client_id": client_id[:10] + "..." if client_id else None,
+            "calendar_id": calendar_id,
+            "refresh_token_present": bool(refresh_token)
+        })
+    except Exception as e:
+        print("❌ Error a /test:", e)
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/')
 def index():
@@ -197,4 +203,19 @@ def get_cites_dia(date_str):
 
             missatges = {}
             for clau, plantilla in PLANTILLES.items():
-                text = plantilla.replace("{{nom}}", nom_pila).replace("{{dia}}", dia_fmt).replace("{{hora}}",
+                text = plantilla.replace("{{nom}}", nom_pila).replace("{{dia}}", dia_fmt).replace("{{hora}}", hora)
+                missatges[clau] = text
+
+            cites.append({
+                "hora": hora,
+                "nom": nom_complet,
+                "nom_net": nom_net,
+                "nom_pila": nom_pila,
+                "tel": tel,
+                "missatges": missatges
+            })
+
+        return cites
+    except Exception as e:
+        print("❌ Error accedint a Google Calendar:", e)
+        return []
