@@ -1,4 +1,3 @@
-app = Flask(__name__, template_folder="templates")
 from flask import Flask, render_template, request, jsonify
 from datetime import datetime, timedelta
 import os
@@ -11,7 +10,7 @@ from googleapiclient.discovery import build
 
 print("✅ Flask ha arrencat")  # Forcem traça al log
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="templates")
 
 @app.route('/test')
 def test():
@@ -224,3 +223,4 @@ def get_cites_dia(date_str):
     except Exception as e:
         print("❌ Error accedint a Google Calendar:", e)
         return []
+``
