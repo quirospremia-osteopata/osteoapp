@@ -58,6 +58,10 @@ def dia():
         cites=cites
     )
 
+@app.route('/calendari')
+def calendari():
+    return render_template('index.html')
+
 DIES_CAT = {
     'Monday': 'Dilluns', 'Tuesday': 'Dimarts', 'Wednesday': 'Dimecres',
     'Thursday': 'Dijous', 'Friday': 'Divendres', 'Saturday': 'Dissabte', 'Sunday': 'Diumenge'
