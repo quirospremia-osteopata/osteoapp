@@ -1,3 +1,4 @@
+app = Flask(__name__, template_folder="templates")
 from flask import Flask, render_template, request, jsonify
 from datetime import datetime, timedelta
 import os
