@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ mes_actual }}</title>
+  <link rel="manifest" href="/static/manifest.json" />
+  <link rel="icon" href="/static/icon192.png" />
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: Canvas;
+      color: CanvasText;
+      text-align: center;
+    }
+
+    header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 2rem;
+      padding: 1rem 0;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    header a {
+      text-decoration: none;
+      font-size: 2rem;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0.5rem;
+      padding: 1rem;
+      max-width: 500px;
+      margin: auto;
+    }
+
+    .dia-setmana {
+      font-weight: bold;
+      padding: 0.5rem 0;
+      background-color: rgba(128,128,128,0.1);
+      border-radius: 0.3rem;
+    }
+
+    .calendar a {
+      display: block;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      color: inherit;
+      background-color: rgba(128,128,128,0.05);
+      font-weight: bold;
+      transition: background-color 0.2s, transform 0.2s;
+    }
+
+    .calendar a:hover {
+      background-color: Highlight;
+      color: HighlightText;
+      transform: scale(1.05);
+    }
+
+    .calendar .avui {
+      background-color: DodgerBlue;
+      color: white;
+      box-shadow: 0 0 5px DodgerBlue;
+    }
+
+    .calendar .buit {
+      visibility: hidden;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem 0;
+      font-size: 2rem;
+    }
+
+    footer a {
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/calendari?mes={{ mes_anterior }}">←</a>
+    <div>{{ mes_actual }}</div>
+    <a href="/calendari?mes={{ mes_seguent }}">→</a>
+  </header>
+
+  <div class="calendar">
+    {% set dies_setmana = ['Dl', 'Dt', 'Dc', 'Dj', 'Dv', 'Ds', 'Dg'] %}
+    {% for nom in dies_setmana %}
+      <div class="dia-setmana">{{ nom }}</div>
+    {% endfor %}
+
+    {% for dia in dies %}
+      {% if dia is none %}
+        <div class="buit">.</div>
+      {% else %}
+        <a href="/dia?date={{ dia.date }}" class="{% if dia.avui %}avui{% endif %}">
+          {{ dia.num }}
+        </a>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <footer>
+    <a href="/dia?date=avui">🏠</a>
+  </footer>
+</body>
+</html>

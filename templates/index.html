@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <title>OSTEOAPP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="icon" href="/static/icon80.png">
+  <link rel="apple-touch-icon" href="/static/icon192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 40px 20px;
+    }
+    h1 {
+      font-size: 2em;
+      margin-bottom: 20px;
+    }
+    .nav {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 30px;
+      margin-top: 30px;
+    }
+    .nav-btn {
+      font-size: 2.5em;
+      text-decoration: none;
+      color: #0055a5;
+      padding: 15px;
+      border-radius: 12px;
+      transition: transform 0.2s;
+    }
+    .nav-btn:hover {
+      transform: scale(1.2);
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #121212;
+        color: #f0f0f0;
+      }
+      .nav-btn {
+        color: #90caf9;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Benvingut a OSTEOAPP</h1>
+  <p>Selecciona una vista:</p>
+  <div class="nav">
+    <a href="/dia?date=avui" class="nav-btn">📅 Dia</a>
+    <a href="/calendari" class="nav-btn">🗓️ Mes</a>
+  </div>
+</body>
+</html>

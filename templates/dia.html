@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ dia_fmt }}</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/static/icon192.png" />
+  <link rel="icon" href="/static/icon192.png" />
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: Canvas;
+      color: CanvasText;
+      text-align: center;
+    }
+    .titol {
+      font-size: 1.6rem;
+      font-weight: bold;
+      padding: 1rem 0 0.5rem 0;
+    }
+    .navegacio {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 2rem;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    .navegacio a { text-decoration: none; }
+    .cita {
+      margin: 1rem auto;
+      padding: 1rem;
+      border: 1px solid GrayText;
+      border-radius: 0.5rem;
+      background-color: Canvas;
+      max-width: 320px;
+      text-align: center;
+    }
+    .hora {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: HighlightText;
+      background-color: Highlight;
+      padding: 0.3rem 0.8rem;
+      border-radius: 0.3rem;
+      display: inline-block;
+      margin-bottom: 0.5rem;
+    }
+    .nom {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 0.3rem;
+    }
+    .tel {
+      font-size: 1rem;
+      color: GrayText;
+      margin-bottom: 0.5rem;
+    }
+    .tel::before { content: "📞 "; }
+    .botons {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      font-size: 2rem;
+      margin-top: 0.5rem;
+    }
+    .botons a {
+      text-decoration: none;
+      padding: 0.3rem;
+      border-radius: 0.3rem;
+      transition: background-color 0.2s;
+    }
+    .botons a:hover {
+      background-color: Highlight;
+      color: HighlightText;
+    }
+    footer {
+      text-align: center;
+      padding: 2rem 0;
+      font-size: 2rem;
+    }
+    footer a { text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="titol">{{ dia_fmt }}</div>
+  <div class="navegacio">
+    <a href="/dia?date={{ dia_anterior }}">←</a>
+    <a href="/calendari">📅</a>
+    <a href="/dia?date={{ dia_seguent }}">→</a>
+  </div>
+
+  {% if cites|length == 0 %}
+    <p style="color: GrayText; font-size: 1.2rem; margin-top: 2rem;">
+      No hi ha cap cita programada per aquest dia.
+    </p>
+  {% endif %}
+
+  {% for cita in cites %}
+    <div class="cita">
+      <div class="hora">{{ cita.hora }}</div>
+      <div class="nom">{{ cita.nom_net }}</div>
+      <div class="tel">{{ cita.tel if cita.tel else 'Sense telèfon' }}</div>
+      <div class="botons">
+        {% if cita.tel %}
+          <a href="https://wa.me/{{ cita.tel }}?text={{ cita.missatges.confirmacio | urlencode }}">✅</a>
+          <a href="https://wa.me/{{ cita.tel }}?text={{ cita.missatges.recordatori | urlencode }}">⏰</a>
+          <a href="https://wa.me/{{ cita.tel }}?text={{ cita.missatges.fidelitzacio | urlencode }}">⭐</a>
+          <a href="https://wa.me/{{ cita.tel }}?text={{ cita.missatges.cancelacio | urlencode }}">❌</a>
+        {% else %}
+          <span style="color: GrayText;">Sense telèfon</span>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+
+  <footer>
+    <a href="/dia?date=avui">🏠</a>
+  </footer>
+</body>
+</html>

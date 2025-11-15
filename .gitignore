@@ -1,0 +1,35 @@
+token.json
+credentials.json
+client_secret.json
+__pycache__/
+*.pyc
+*.pyo
+*.log
+venv/
+env/
+.venv/
+.env
+static/icon192.png
+static/icon512.png
+static/manifest.json
+# 🔐 Fitxers sensibles
+token.json
+credentials.json
+client_secret.json
+
+# 🗂️ Fitxers temporals i entorns
+__pycache__/
+*.pyc
+*.pyo
+*.log
+
+# 🧪 Entorns virtuals
+venv/
+env/
+.venv/
+.env
+
+# 🌐 Fitxers de navegador/PWA
+static/icon192.png
+static/icon512.png
+static/manifest.json
