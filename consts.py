@@ -89,7 +89,13 @@ def get_google_credentials():
     try:
         response = requests.post(token_uri, data=data)
         response.raise_for_status()
-        access_token = response.json()["access_token"]
+        token_data = response.json()
+
+        access_token = token_data.get("access_token")
+        if not access_token:
+            print("❌ No s'ha rebut access_token")
+            return None
+
         creds = Credentials(
             token=access_token,
             refresh_token=refresh_token,
@@ -99,8 +105,17 @@ def get_google_credentials():
             scopes=["https://www.googleapis.com/auth/calendar"],
         )
         return creds
+
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Error en la petició HTTP: {e}")
+        if hasattr(e, "response") and e.response is not None:
+            print(f"   Resposta del servidor: {e.response.text}")
+        return None
+    except KeyError as e:
+        print(f"❌ Error: clau no trobada a la resposta - {e}")
+        return None
     except Exception as e:
-        print("❌ Error refrescant token:", e)
+        print(f"❌ Error refrescant token: {e}")
         return None
 
 
