@@ -2,6 +2,7 @@ import os
 from datetime import datetime, timedelta
 
 from flask import Flask, render_template, request, jsonify
+from waitress import serve
 
 from consts import DIES_CAT, MESOS_CAT, get_cites_dia
 
@@ -65,3 +66,24 @@ def dia():
 @app.route("/calendari")
 def calendari():
     return render_template("index.html")
+
+
+if __name__ == "__main__":
+    host = os.getenv("HOST", "127.0.0.1")
+    port = os.getenv("PORT", 8080)
+    socket = os.getenv("SOCKET", None)
+    if socket:
+        host = "unix://" + socket
+        port = None
+        print(f"Listening on socket {socket}...")
+        serve(
+            app,
+            socket=socket,
+        )
+    else:
+        print(f"Listening on port http://{host}:{port}...")
+        serve(
+            app,
+            host=host,
+            port=port,
+        )
