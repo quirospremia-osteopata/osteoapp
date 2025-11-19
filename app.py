@@ -71,24 +71,27 @@ def calendari():
 
 
 if __name__ == "__main__":
-
-    load_dotenv()  # Ensure environment variables are loaded
-    host = os.getenv("HOST", "127.0.0.1")
-    port = int(os.getenv("PORT", 8080))
-    socket = os.getenv("SOCKET", None)
-
-    if socket:
-        host = "unix://" + socket
-        port = None
-        print(f"Listening on socket {socket}...")
-        serve(
-            app,
-            socket=socket,
-        )
+    if os.environ.get("FLASK_ENV") == "development":
+        app.run(debug=True, host="127.0.0.1", port=5000)
     else:
-        print(f"Listening on port http://{host}:{port}...")
-        serve(
-            app,
-            host=host,
-            port=port,
-        )
+
+        load_dotenv(dotenv_path=".env")  # Ensure environment variables are loaded
+        host = os.getenv("HOST", "127.0.0.1")
+        port = int(os.getenv("PORT", 8080))
+        socket = os.getenv("SOCKET", None)
+
+        if socket:
+            host = "unix://" + socket
+            port = None
+            print(f"Listening on socket {host}...")
+            serve(
+                app,
+                unix_socket=socket,
+            )
+        else:
+            print(f"Listening on port http://{host}:{port}...")
+            serve(
+                app,
+                host=host,
+                port=port,
+            )
