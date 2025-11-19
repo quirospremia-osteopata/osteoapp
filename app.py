@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify
 from waitress import serve
 
-from consts import DIES_CAT, MESOS_CAT, get_cites_dia
+from consts import DIES_CAT, MESOS_CAT, get_cites_dia, verify_google_oauth_config
 
 load_dotenv()  # Load environment variables from .env file
 print("✅ Flask ha arrencat")  # Forcem traça al log
@@ -68,6 +68,15 @@ def dia():
 @app.route("/calendari")
 def calendari():
     return render_template("index.html")
+
+
+@app.route("/debug/google")
+def debug_google():
+    try:
+        res = verify_google_oauth_config()
+        return jsonify(res), (200 if res and res.get("ok") else 400)
+    except Exception as e:
+        return jsonify({"ok": False, "error": "unexpected_error", "detail": str(e)}), 500
 
 
 if __name__ == "__main__":

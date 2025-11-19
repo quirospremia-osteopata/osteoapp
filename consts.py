@@ -88,8 +88,19 @@ def get_google_credentials():
 
     try:
         response = requests.post(token_uri, data=data)
-        response.raise_for_status()
-        token_data = response.json()
+        if response.status_code != 200:
+            # Intenta mostrar informació detallada de l'error de Google
+            try:
+                err = response.json()
+            except Exception:
+                err = {"raw": response.text}
+            print(
+                "❌ Error refrescant token (HTTP {}): {}".format(
+                    response.status_code, err
+                )
+            )
+            return None
+        token_data = response.jsozn()
 
         access_token = token_data.get("access_token")
         if not access_token:
@@ -109,11 +120,110 @@ def get_google_credentials():
     except requests.exceptions.RequestException as e:
         print(f"❌ Error en la petició HTTP: {e}")
         if hasattr(e, "response") and e.response is not None:
-            print(f"   Resposta del servidor: {e.response.text}")
+            try:
+                print(f"   Resposta del servidor: {e.response.json()}")
+            except Exception:
+                print(f"   Resposta del servidor: {e.response.text}")
         return None
     except KeyError as e:
         print(f"❌ Error: clau no trobada a la resposta - {e}")
         return None
+
+
+def _mask(value: str, keep: int = 6):
+    if not value:
+        return None
+    if len(value) <= keep:
+        return "*" * len(value)
+    return value[:keep] + "..." + (value[-3:] if len(value) > keep + 3 else "")
+
+
+def verify_google_oauth_config():
+    """Verifica que les variables d'entorn de Google OAuth siguin coherents i funcionals.
+
+    Retorna un diccionari amb:
+      - ok: bool
+      - status: http status del refresh si s'ha provat
+      - error: missatge (si n'hi ha)
+      - error_description: si Google el proporciona
+      - details: informació addicional
+      - env: valors enmascarats de les variables
+    """
+    client_id = os.getenv("GOOGLE_CLIENT_ID")
+    client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
+    refresh_token = os.getenv("GOOGLE_REFRESH_TOKEN")
+    calendar_id = os.getenv("GOOGLE_CALENDAR_ID")
+
+    result = {
+        "ok": False,
+        "env": {
+            "GOOGLE_CLIENT_ID": _mask(client_id or ""),
+            "GOOGLE_CLIENT_SECRET": _mask(client_secret or ""),
+            "GOOGLE_REFRESH_TOKEN_present": bool(refresh_token),
+            "GOOGLE_CALENDAR_ID": calendar_id,
+        },
+        "details": {},
+    }
+
+    # Validacions bàsiques de format
+    issues = []
+    if not client_id:
+        issues.append("Falta GOOGLE_CLIENT_ID")
+    elif not re.match(r"^\d+-[\w-]+\.apps\.googleusercontent\.com$", client_id):
+        issues.append("Format de GOOGLE_CLIENT_ID inesperat")
+
+    if not client_secret:
+        issues.append("Falta GOOGLE_CLIENT_SECRET")
+
+    if not refresh_token:
+        issues.append("Falta GOOGLE_REFRESH_TOKEN")
+
+    if issues:
+        result["error"] = "; ".join(issues)
+        return result
+
+    # Prova de refresh token directament contra Google
+    token_uri = "https://oauth2.googleapis.com/token"
+    data = {
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "refresh_token": refresh_token,
+        "grant_type": "refresh_token",
+    }
+    try:
+        resp = requests.post(token_uri, data=data)
+        result["status"] = resp.status_code
+        if resp.status_code == 200:
+            j = resp.json()
+            result["ok"] = True
+            result["details"]["scopes"] = j.get("scope")
+            result["details"]["token_type"] = j.get("token_type")
+            return result
+        else:
+            try:
+                j = resp.json()
+            except Exception:
+                j = {"raw": resp.text}
+            result["error"] = j.get("error") or "refresh_failed"
+            result["error_description"] = j.get("error_description") or j
+            # Suggeriments comuns
+            suggestions = []
+            if result["error"] in {"invalid_client", "unauthorized_client"}:
+                suggestions.append(
+                    "Revisa que CLIENT_ID i SECRET coincideixin amb el projecte on es va obtenir el refresh_token."
+                )
+            if result["error"] in {"invalid_grant"}:
+                suggestions.append(
+                    "El refresh_token pot ser invàlid, revocat o pertànyer a unes credencials diferents. Torna a generar-lo."
+                )
+            if not calendar_id:
+                suggestions.append("Falta GOOGLE_CALENDAR_ID o usa 'primary'.")
+            result["details"]["suggestions"] = suggestions
+            return result
+    except requests.exceptions.RequestException as e:
+        result["error"] = "http_request_error"
+        result["error_description"] = str(e)
+        return result
     except Exception as e:
         print(f"❌ Error refrescant token: {e}")
         return None
@@ -123,7 +233,7 @@ def get_cites_dia(date_str):
     try:
         creds = get_google_credentials()
         if not creds:
-            return []
+            return None
 
         service = build("calendar", "v3", credentials=creds)
         calendar_id = os.getenv("GOOGLE_CALENDAR_ID", "primary")
@@ -210,4 +320,4 @@ def get_cites_dia(date_str):
         return cites
     except Exception as e:
         print("❌ Error accedint a Google Calendar:", e)
-        return []
+        return None
